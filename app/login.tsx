@@ -16,15 +16,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Extrapolation,
   FadeInUp,
+  interpolate,
+  runOnJS,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
-  withSpring
+  withSpring,
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
+// 社交登录按钮组件
 function SocialButton({ source, onPress }: { source: any; onPress: () => void }) {
   const scale = useSharedValue(1);
 
@@ -71,6 +77,118 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  
+  const itemHeight = 40;
+  const translateY = useSharedValue(0);
+  const context = useSharedValue(0);
+  
+  // 监听滚动位置，更新 JS 端的 isLogin 状态
+  useDerivedValue(() => {
+    const index = Math.round(-translateY.value / itemHeight);
+    const currentModeIndex = Math.abs(index % 2); // 0 或 1
+    runOnJS(setIsLogin)(currentModeIndex === 0);
+  });
+
+  const handleLogin = async () => {
+    if (!username || !password) return;
+    
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.replace('/(tabs)');
+    }, 1500);
+  };
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      context.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      translateY.value = context.value + event.translationY;
+    })
+    .onEnd((event) => {
+      // 计算惯性滚动结束位置
+      const targetY = context.value + event.translationY + event.velocityY * 0.1;
+      const targetIndex = Math.round(-targetY / itemHeight);
+      const snapPoint = -targetIndex * itemHeight;
+
+      translateY.value = withSpring(snapPoint, {
+        damping: 15,
+        stiffness: 150,
+      });
+    });
+
+  // 动态文本组件 - 用于无限滚动
+  const DynamicText = ({ offset }: { offset: number }) => {
+    const style = useAnimatedStyle(() => {
+      const centerIndex = Math.round(-translateY.value / itemHeight);
+      const absoluteIndex = centerIndex + offset;
+      const targetY = absoluteIndex * itemHeight;
+      const relativeY = targetY + translateY.value;
+      
+      const opacity = interpolate(
+        relativeY,
+        [-itemHeight, 0, itemHeight],
+        [0.4, 1, 0.4],
+        Extrapolation.CLAMP
+      );
+      
+      const scale = interpolate(
+        relativeY,
+        [-itemHeight, 0, itemHeight],
+        [0.8, 1.1, 0.8],
+        Extrapolation.CLAMP
+      );
+
+      const rotateX = interpolate(
+        relativeY,
+        [-itemHeight, 0, itemHeight],
+        [45, 0, -45],
+        Extrapolation.CLAMP
+      );
+
+      return {
+        position: 'absolute',
+        height: itemHeight,
+        justifyContent: 'center',
+        alignItems: 'center',
+        opacity,
+        transform: [
+          { translateY: relativeY },
+          { perspective: 500 },
+          { rotateX: `${rotateX}deg` },
+          { scale },
+        ],
+      };
+    });
+
+    const textStyle1 = useAnimatedStyle(() => {
+      const centerIndex = Math.round(-translateY.value / itemHeight);
+      const absoluteIndex = centerIndex + offset;
+      return {
+        opacity: Math.abs(absoluteIndex % 2) === 0 ? 1 : 0,
+      };
+    });
+
+    const textStyle2 = useAnimatedStyle(() => {
+      const centerIndex = Math.round(-translateY.value / itemHeight);
+      const absoluteIndex = centerIndex + offset;
+      return {
+        opacity: Math.abs(absoluteIndex % 2) === 1 ? 1 : 0,
+      };
+    });
+
+    return (
+      <Animated.View style={style}>
+        <Animated.Text style={[styles.tabTextActive, styles.absoluteText, textStyle1]}>
+          Login
+        </Animated.Text>
+        <Animated.Text style={[styles.tabTextActive, styles.absoluteText, textStyle2]}>
+          Signup
+        </Animated.Text>
+      </Animated.View>
+    );
+  };
 
   if (!fontsLoaded) {
     return (
@@ -79,17 +197,6 @@ export default function LoginScreen() {
       </View>
     );
   }
-
-  const handleLogin = async () => {
-    if (!username || !password) return;
-    
-    setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
-      router.replace('/(tabs)');
-    }, 1500);
-  };
 
   return (
     <ImageBackground
@@ -133,23 +240,16 @@ export default function LoginScreen() {
           {/* Form Overlay */}
           <View style={styles.formOverlay}>
             {/* Top Banner - Login/Signup Toggle */}
-            <View style={styles.modalBanner}>
-              <View style={styles.tabContainer}>
-                <TouchableOpacity 
-                  style={[styles.tabBtn, isLogin && styles.tabBtnActive]}
-                  onPress={() => setIsLogin(true)}
-                >
-                  <Text style={[styles.tabText, isLogin && styles.tabTextActive]}>Login</Text>
-                </TouchableOpacity>
-                <Text style={styles.tabDivider}>|</Text>
-                <TouchableOpacity 
-                  style={[styles.tabBtn, !isLogin && styles.tabBtnActive]}
-                  onPress={() => setIsLogin(false)}
-                >
-                  <Text style={[styles.tabText, !isLogin && styles.tabTextActive]}>Signup</Text>
-                </TouchableOpacity>
+            <GestureDetector gesture={panGesture}>
+              <View style={styles.modalBanner}>
+                <View style={styles.slidingTextContainer}>
+                  {[-2, -1, 0, 1, 2].map((offset) => (
+                    <DynamicText key={offset} offset={offset} />
+                  ))}
+                </View>
+                <Text style={styles.swipeHint}>↑ Scroll ↓</Text>
               </View>
-            </View>
+            </GestureDetector>
 
             {/* Username Input */}
             <View style={styles.usernameWrapper}>
@@ -305,42 +405,32 @@ const styles = StyleSheet.create({
     paddingTop: '3%',
   },
   modalBanner: {
-    height: '10%',
+    height: '20%',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: '3%',
-  },
-  modalBannerText: {
-    fontFamily: 'PressStart2P_400Regular',
-    fontSize: 12,
-    color: '#5C4033',
-    letterSpacing: 1,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  tabBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  tabBtnActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#5C4033',
-  },
-  tabText: {
-    fontFamily: 'PressStart2P_400Regular',
-    fontSize: 14,
-    color: '#8B7355',
+    marginTop: '-7%',
   },
   tabTextActive: {
-    color: '#5C4033',
-  },
-  tabDivider: {
+    fontFamily: 'PressStart2P_400Regular',
     fontSize: 18,
-    color: '#8B7355',
-    marginHorizontal: 6,
+    color: '#5C4033',
+    fontWeight: '900',
+  },
+  slidingTextContainer: {
+    width: 120,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  absoluteText: {
+    position: 'absolute',
+  },
+  swipeHint: {
+    fontSize: 8,
+    color: 'rgba(139, 115, 85, 0.5)',
+    marginTop: 8,
   },
   usernameWrapper: {
     position: 'absolute',
@@ -433,147 +523,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 72,
   },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(245, 222, 179, 0.8)',
-    marginTop: 8,
-    letterSpacing: 6,
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
-  },
-  cardWrapper: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 168, 75, 0.3)',
-  },
-  card: {
-    width: '100%',
-  },
-  cardInner: {
-    padding: 32,
-    position: 'relative',
-  },
-  corner: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    borderColor: '#D4A84B',
-  },
-  cornerTopLeft: {
-    top: 12,
-    left: 12,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
-  },
-  cornerTopRight: {
-    top: 12,
-    right: 12,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
-  },
-  cornerBottomLeft: {
-    bottom: 12,
-    left: 12,
-    borderBottomWidth: 2,
-    borderLeftWidth: 2,
-  },
-  cornerBottomRight: {
-    bottom: 12,
-    right: 12,
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#F5DEB3',
-    textAlign: 'center',
-    marginBottom: 28,
-    letterSpacing: 2,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 13,
-    color: 'rgba(245, 222, 179, 0.7)',
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  inputWrapper: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 168, 75, 0.2)',
-  },
-  input: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#F5DEB3',
-  },
-  buttonWrapper: {
-    marginTop: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#D4A84B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  button: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a2e',
-    letterSpacing: 2,
-  },
-  forgotButton: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  forgotText: {
-    fontSize: 14,
-    color: 'rgba(245, 222, 179, 0.6)',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(212, 168, 75, 0.2)',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 13,
-    color: 'rgba(245, 222, 179, 0.5)',
-  },
-  registerButton: {
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(212, 168, 75, 0.4)',
-    backgroundColor: 'rgba(212, 168, 75, 0.1)',
-  },
-  registerText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#D4A84B',
-    letterSpacing: 1,
-  },
   footer: {
     position: 'absolute',
     bottom: 40,
@@ -587,4 +536,3 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 });
-
