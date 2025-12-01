@@ -1,3 +1,4 @@
+import { Images } from '@/assets/images/basic';
 import { PressStart2P_400Regular, useFonts } from '@expo-google-fonts/press-start-2p';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -15,9 +16,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
+} from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
+
+function SocialButton({ source, onPress }: { source: any; onPress: () => void }) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.85, {
+      damping: 15,
+      stiffness: 500,
+    });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 500,
+    });
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.socialBtn}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      activeOpacity={1}
+    >
+      <Animated.View style={animatedStyle}>
+        <Image source={source} style={styles.socialIcon} resizeMode="contain" />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
 
 export default function LoginScreen() {
   const [fontsLoaded] = useFonts({
@@ -49,9 +93,9 @@ export default function LoginScreen() {
 
   return (
     <ImageBackground
-      source={require('@/assets/images/basic/bg.png')}
+      source={Images.bg}
       style={styles.background}
-      resizeMode="cover"
+      resizeMode="contain"
     >
       <StatusBar style="light" />
       <KeyboardAvoidingView
@@ -65,7 +109,7 @@ export default function LoginScreen() {
         >
           <View style={styles.bannerWrapper}>
             <Image
-              source={require('@/assets/images/basic/bg_title.png')}
+              source={Images.bgTitle}
               style={styles.bannerImage}
               resizeMode="contain"
             />
@@ -81,7 +125,7 @@ export default function LoginScreen() {
           style={styles.loginModalContainer}
         >
           <Image
-            source={require('@/assets/images/basic/login_modal.png')}
+            source={Images.loginModal}
             style={styles.loginModalImage}
             resizeMode="contain"
           />
@@ -110,7 +154,7 @@ export default function LoginScreen() {
             {/* Username Input */}
             <View style={styles.usernameWrapper}>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, styles.usernameInput]}
                 placeholder="Username"
                 placeholderTextColor="#8B7355"
                 value={username}
@@ -122,7 +166,7 @@ export default function LoginScreen() {
             {/* Password Input */}
             <View style={styles.passwordWrapper}>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, styles.passwordInput]}
                 placeholder="Password"
                 placeholderTextColor="#8B7355"
                 value={password}
@@ -152,15 +196,18 @@ export default function LoginScreen() {
             <View style={styles.socialSection}>
               <Text style={styles.socialTitle}>Or continue with</Text>
               <View style={styles.socialButtons}>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Text style={styles.socialBtnText}>G</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Text style={styles.socialBtnText}>f</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Text style={styles.socialBtnText}>X</Text>
-                </TouchableOpacity>
+                <SocialButton
+                  source={Images.appleIcon}
+                  onPress={() => console.log('Apple login')}
+                />
+                <SocialButton
+                  source={Images.googleIcon}
+                  onPress={() => console.log('Google login')}
+                />
+                <SocialButton
+                  source={Images.facebookIcon}
+                  onPress={() => console.log('Facebook login')}
+                />
               </View>
             </View>
           </View>
@@ -189,6 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+    backgroundColor: '#2a3a4a',
   },
   container: {
     flex: 1,
@@ -283,34 +331,42 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: 'PressStart2P_400Regular',
-    fontSize: 10,
+    fontSize: 14,
     color: '#8B7355',
   },
   tabTextActive: {
     color: '#5C4033',
   },
   tabDivider: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#8B7355',
-    marginHorizontal: 4,
+    marginHorizontal: 6,
   },
   usernameWrapper: {
     position: 'absolute',
     top: '22%',
-    left: '15%',
-    right: '15%',
+    left: 0,
+    right: 0,
     height: '10%',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  usernameInput: {
+    width: '65%',
+    maxWidth: 180,
+  },
   passwordWrapper: {
     position: 'absolute',
     top: '37%',
-    left: '15%',
-    right: '15%',
+    left: 0,
+    right: 0,
     height: '10%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  passwordInput: {
+    width: '65%',
+    maxWidth: 180,
   },
   modalInput: {
     fontSize: 12,
@@ -349,7 +405,7 @@ const styles = StyleSheet.create({
   },
   socialSection: {
     position: 'absolute',
-    top: '80%',
+    top: '78%',
     left: '12%',
     right: '12%',
     bottom: '5%',
@@ -363,22 +419,19 @@ const styles = StyleSheet.create({
   },
   socialButtons: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 2,
   },
   socialBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(92, 64, 51, 0.1)',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(92, 64, 51, 0.3)',
+    overflow: 'hidden',
   },
-  socialBtnText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#5C4033',
+  socialIcon: {
+    width: 60,
+    height: 72,
   },
   subtitle: {
     fontSize: 16,
