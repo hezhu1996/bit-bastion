@@ -1,98 +1,117 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+    <ImageBackground
+      source={require('@/assets/images/basic/main_bg_2.png')}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require('@/assets/images/basic/dragon.png')}
+          style={styles.dragon}
+          resizeMode="contain"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Buttons Group */}
+        <View style={styles.buttonsGroup}>
+          {/* Start Focus Quest Button */}
+          <ImageBackground
+            source={require('@/assets/images/basic/start_button_1.png')}
+            style={styles.startButton1Container}
+            resizeMode="contain"
+          >
+            <Text style={styles.startButton1Text}>START FOCUS QUEST</Text>
+          </ImageBackground>
+
+          {/* Blood Oath Button */}
+          <ImageBackground
+            source={require('@/assets/images/basic/start_button_2.png')}
+            style={styles.startButton2Container}
+            resizeMode="contain"
+          >
+            <Text style={styles.startButton2Text}>BLOOD OATH</Text>
+          </ImageBackground>
+        </View>
+
+        {/* Navigator */}
+        <Image
+          source={require('@/assets/images/basic/navigator.png')}
+          style={styles.navigator}
+          resizeMode="stretch"
+        />
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    flex: 1,
+  },
+  dragon: {
+    width: 300,
+    height: 300,
+    position: 'absolute',
+    top: '30%',
+    alignSelf: 'center',
+  },
+  buttonsGroup: {
+    position: 'absolute',
+    bottom: '14%',  // 百分比定位，所有设备相同位置
+    alignSelf: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  startButton1Container: {
+    width: 380,
+    height: 180,
+    zIndex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: -100,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
+  startButton1Text: {
+    marginLeft: 85,
+    fontFamily: 'PressStart2P_400Regular',
+    fontSize: 15,
+    color: '#F5E6D3',
+    textAlign: 'center',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    transform: [{ scaleY: 1.2 }],
+  },
+  startButton2Container: {
+    width: 300,
+    height: 180,
+    zIndex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  startButton2Text: {
+    marginTop: 30,
+    marginLeft: 55,
+    fontFamily: 'PressStart2P_400Regular',
+    fontSize: 15,
+    color: '#F5E6D3',
+    textAlign: 'center',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    transform: [{ scaleY: 1.2 }],
+  },
+  navigator: {
+    position: 'absolute',
     bottom: 0,
     left: 0,
-    position: 'absolute',
+    right: 0,
+    width: '100%',
+    height: '12%',  // 百分比高度，所有设备相同比例
   },
 });
