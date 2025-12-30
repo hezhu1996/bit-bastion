@@ -14,6 +14,12 @@ export default function HomeScreen() {
           resizeMode="contain"
         />
 
+        <Image
+          source={require('@/assets/images/basic/man_basic.png')}
+          style={styles.manBasic}
+          resizeMode="contain"
+        />
+
         {/* Buttons Group */}
         <View style={styles.buttonsGroup}>
           {/* Start Focus Quest Button */}
@@ -59,12 +65,19 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     position: 'absolute',
-    top: '30%',
+    top: '35%',
     alignSelf: 'center',
+  },
+  manBasic: {
+    width: 150,
+    height: 150,
+    position: 'absolute',
+    top: '20%',
+    left: '5%',
   },
   buttonsGroup: {
     position: 'absolute',
-    bottom: '14%',  // 百分比定位，所有设备相同位置
+    bottom: '10%',  // 百分比定位，所有设备相同位置
     alignSelf: 'center',
     alignItems: 'center',
   },
