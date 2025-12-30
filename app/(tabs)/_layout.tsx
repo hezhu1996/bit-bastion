@@ -18,12 +18,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="focus"
-        options={{
-          title: 'Focus',
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',

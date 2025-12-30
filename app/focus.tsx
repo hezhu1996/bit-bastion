@@ -1,6 +1,5 @@
-import { CustomTabBar } from '@/components/custom-tab-bar';
 import { useFocusDuration } from '@/contexts/focus-context';
-import { Href, router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -22,7 +21,7 @@ export default function FocusScreen() {
   );
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: any = null;
 
     if (isActive && timeRemaining > 0) {
       interval = setInterval(() => {
@@ -30,7 +29,7 @@ export default function FocusScreen() {
       }, 1000);
     } else if (isActive && timeRemaining === 0) {
       setIsActive(false);
-      router.replace('/(tabs)' as Href);
+      router.back();
     }
 
     return () => {
@@ -46,49 +45,51 @@ export default function FocusScreen() {
 
   const handleStop = () => {
     setIsActive(false);
-    router.replace('/(tabs)' as Href);
+    router.back();
   };
 
   return (
-    <ImageBackground
-      source={require('@/assets/images/basic/main_bg_2.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <Text style={styles.title}>🍅 FOCUS TIME</Text>
-        
-        <View style={styles.timerCircle}>
-          <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
-          <Text style={styles.timerSubtext}>Stay focused!</Text>
+    <View style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/basic/main_bg_2.png')}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.content}>
+          <Text style={styles.title}>🍅 FOCUS TIME</Text>
+          
+          <View style={styles.timerCircle}>
+            <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
+            <Text style={styles.timerSubtext}>Stay focused!</Text>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.stopButton} 
+            onPress={handleStop}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.stopButtonText}>GIVE UP</Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity 
-          style={styles.stopButton} 
-          onPress={handleStop}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.stopButtonText}>GIVE UP</Text>
-        </TouchableOpacity>
-      </View>
-
-      <CustomTabBar currentTab="focus" />
-    </ImageBackground>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1a2e', // 关键：不透明背景色，避免透视
+  },
   background: {
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#1a1a2e',
   },
-  container: {
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 100,
   },
   title: {
     fontFamily: 'PressStart2P_400Regular',

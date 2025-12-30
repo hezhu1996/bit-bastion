@@ -2,12 +2,11 @@ import { Href, router } from 'expo-router';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type TabBarProps = {
-  currentTab: 'home' | 'focus' | 'profile';
+  currentTab: 'home' | 'profile';
 };
 
 export function CustomTabBar({ currentTab }: TabBarProps) {
   const isHome = currentTab === 'home';
-  const isFocus = currentTab === 'focus';
   const isProfile = currentTab === 'profile';
 
   return (
@@ -27,14 +26,6 @@ export function CustomTabBar({ currentTab }: TabBarProps) {
         >
           <Text style={[styles.navIcon, isHome && styles.navIconActive]}>🏠</Text>
           <Text style={[styles.navLabel, isHome && styles.navLabelActive]}>HOME</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navIconButtonCenter}
-          onPress={() => !isFocus && router.replace('/(tabs)/focus' as Href)}
-        >
-          <Text style={[styles.navIconCenter, isFocus && styles.navIconActive]}>🍅</Text>
-          <Text style={[styles.navLabel, isFocus && styles.navLabelActive]}>FOCUS</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -77,20 +68,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     flex: 1,
   },
-  navIconButtonCenter: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-    flex: 1,
-    marginTop: -20,
-  },
   navIcon: {
-    fontSize: 22,
+    fontSize: 24,
     opacity: 0.5,
-  },
-  navIconCenter: {
-    fontSize: 32,
-    opacity: 0.8,
   },
   navIconActive: {
     opacity: 1,

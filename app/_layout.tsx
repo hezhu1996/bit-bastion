@@ -27,6 +27,16 @@ export default function RootLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="login" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen 
+              name="focus" 
+              options={{ 
+                presentation: 'transparentModal',
+                animation: 'slide_from_bottom',
+                animationDuration: 400,
+                // 设置不透明底色，避免系统默认的黑色底
+                contentStyle: { backgroundColor: '#1a1a2e' },
+              }} 
+            />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />
