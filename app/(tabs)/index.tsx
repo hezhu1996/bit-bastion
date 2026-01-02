@@ -1,3 +1,4 @@
+import MagicTimer from '@/app/util/MagicGlowingText';
 import { CustomTabBar } from '@/components/custom-tab-bar';
 import { ScrollPicker } from '@/components/scroll-picker';
 import { useFocusDuration } from '@/contexts/focus-context';
@@ -13,11 +14,10 @@ export default function HomeScreen() {
   const [timeRemaining, setTimeRemaining] = useState(focusDuration * 60);
   const [isActive, setIsActive] = useState(false);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['90%'], []);
+  const snapPoints = useMemo(() => ['100%'], []);
 
   useEffect(() => {
-    // 预加载 Focus 页面的背景
-    Asset.fromModule(require('@/assets/images/basic/main_bg_2.png')).downloadAsync().catch(() => {});
+    Asset.fromModule(require('@/assets/images/focus/focus-bg-2.png')).downloadAsync().catch(() => {});
   }, []);
 
   const handleStartFocus = useCallback(() => {
@@ -72,6 +72,17 @@ export default function HomeScreen() {
         disappearsOnIndex={-1}
         opacity={0.7}
         pressBehavior="none"
+      />
+    ),
+    []
+  );
+
+  const renderBackground = useCallback(
+    (props: any) => (
+      <ImageBackground
+        source={require('@/assets/images/focus/focus-bg-2.png')}
+        style={[props.style, styles.sheetBackgroundImage]}
+        resizeMode="cover"
       />
     ),
     []
@@ -157,17 +168,12 @@ export default function HomeScreen() {
         enableHandlePanningGesture={false}
         enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
+        backgroundComponent={renderBackground}
         handleIndicatorStyle={styles.sheetHandle}
-        backgroundStyle={styles.sheetBackground}
       >
         <BottomSheetView style={styles.sheetContent}>
           <View style={styles.focusContent}>
-            <Text style={styles.focusTitle}>🍅 FOCUS TIME</Text>
-
-            <View style={styles.timerCircle}>
-              <Text style={styles.focusTimerText}>{formatTime(timeRemaining)}</Text>
-              <Text style={styles.focusTimerSubtext}>Stay focused!</Text>
-            </View>
+            <MagicTimer timeInSeconds={timeRemaining} fontSize={100} />
 
             <TouchableOpacity
               style={styles.stopButton}
@@ -291,39 +297,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD700',
     width: 80,
   },
-  sheetBackground: {
-    backgroundColor: '#FFFFFF',
+  sheetBackgroundImage: {
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: '#0a0f14',
   },
   sheetContent: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   focusContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    marginTop: 100
   },
   focusTitle: {
     fontFamily: 'PressStart2P_400Regular',
     fontSize: 18,
     color: '#E74C3C',
     marginBottom: 40,
-  },
-  timerCircle: {
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: '#F8F9FA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#E74C3C',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
   },
   focusTimerText: {
     fontFamily: 'PressStart2P_400Regular',
